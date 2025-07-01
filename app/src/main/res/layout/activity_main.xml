@@ -4,37 +4,41 @@
     android:layout_height="match_parent">
 
     <!-- Top part -->
+    <!-- Top part -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:gravity="center"
+        android:padding="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp">
 
         <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
+            android:layout_width="300dp"
             android:layout_height="wrap_content"
             android:hint="Enter text here"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextTextMultiLine"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:gravity="start|top"
+                android:inputType="textMultiLine" />
         </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editTextTextMultiLine"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="start|top"
-            android:inputType="textMultiLine"
-            android:minHeight="100dp" />
 
         <Button
             android:id="@+id/updateMsgButton"
             android:layout_width="wrap_content"
-            android:layout_height="67dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
             android:backgroundTint="#6A1B9A"
             android:text="Update user msg"
             android:textColor="#FFFFFF" />
     </LinearLayout>
+
 
     <!-- Middle part -->
     <LinearLayout
@@ -68,7 +72,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="No message saved"
-            android:textSize="18sp"
-            android:textColor="#000000" />
+            android:textSize="18sp" />
     </LinearLayout>
 </LinearLayout>

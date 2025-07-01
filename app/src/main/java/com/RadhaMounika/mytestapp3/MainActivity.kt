@@ -155,8 +155,7 @@ class MainActivity : AppCompatActivity() {
     private val payloadCallback = object : PayloadCallback() {
         override fun onPayloadReceived(endpointId: String, payload: Payload) {
             payload.asBytes()?.let { bytes ->
-                val message = String(bytes)
-                otherUserMsg= message
+                val message = "Received Msg:"+String(bytes)
                 val msgTextView = findViewById<TextView>(R.id.savedMsgTextView)
                 msgTextView.setText(message)
                 showToast("Received: $message")
