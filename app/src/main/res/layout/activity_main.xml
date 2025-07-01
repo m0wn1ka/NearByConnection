@@ -2,9 +2,10 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
-    <!-- Top part -->
-    <!-- Top part -->
+<!--    total 3 parts
+part1 is enter user text and update
+part2 is to press the button advertise
+part3 is for showing of user msg(will not persist once we close the app-->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -18,7 +19,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="300dp"
             android:layout_height="wrap_content"
-            android:hint="Enter text here"
+            android:hint="Enter your msg here"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -35,12 +36,11 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:backgroundTint="#6A1B9A"
-            android:text="Update user msg"
+            android:text="save your msg"
             android:textColor="#FFFFFF" />
     </LinearLayout>
 
 
-    <!-- Middle part -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -53,7 +53,7 @@
             android:id="@+id/buttonAdvertise"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Start Advertising"
+            android:text="Share The Msg"
             android:backgroundTint="#6A1B9A"
             android:textColor="#FFFFFF" />
     </LinearLayout>
