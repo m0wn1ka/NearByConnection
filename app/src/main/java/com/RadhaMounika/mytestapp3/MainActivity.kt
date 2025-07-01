@@ -22,14 +22,9 @@ class MainActivity : AppCompatActivity() {
         connectionsClient = Nearby.getConnectionsClient(this)
 
         val advertiseButton = findViewById<Button>(R.id.buttonAdvertise)
-        val discoverButton = findViewById<Button>(R.id.buttonDiscover)
 
         advertiseButton.setOnClickListener {
             startAdvertising()
-        }
-
-        discoverButton.setOnClickListener {
-            startDiscovery()
         }
 
         requestPermissions()
@@ -85,7 +80,6 @@ class MainActivity : AppCompatActivity() {
 
     private val connectionLifecycleCallback = object : ConnectionLifecycleCallback() {
         override fun onConnectionInitiated(endpointId: String, connectionInfo: ConnectionInfo) {
-            // Automatically accept the connection
             showToast("connection life cycle call back called999")
             connectionsClient.acceptConnection(endpointId, payloadCallback)
         }
@@ -94,7 +88,6 @@ class MainActivity : AppCompatActivity() {
             when (result.status.statusCode) {
                 ConnectionsStatusCodes.STATUS_OK -> {
                     showToast("Connected to $endpointId")
-                    // Send "Hi"
                     val payload = Payload.fromBytes("Hi".toByteArray())
                     connectionsClient.sendPayload(endpointId, payload)
                 }
