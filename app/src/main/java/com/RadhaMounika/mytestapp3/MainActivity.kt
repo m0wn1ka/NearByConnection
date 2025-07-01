@@ -3,16 +3,26 @@ package com.RadhaMounika.mytestapp3
 import android.Manifest
 import android.os.Bundle
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.nearby.Nearby
 import com.google.android.gms.nearby.connection.*
 import com.google.android.gms.nearby.connection.Strategy.P2P_CLUSTER
+import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
-
-    private val serviceId = "com.example.nearbydemo.SERVICE_ID"
+    val AppCompatActivity.dataStore by preferencesDataStore(name = "UserMsgStore")
+    private val userMsgKey = stringPreferencesKey("userMsg")
+    private lateinit var  userMsg : String
+    private lateinit var otherUserMsg : String
     private lateinit var connectionsClient: ConnectionsClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,7 +31,20 @@ class MainActivity : AppCompatActivity() {
 
         connectionsClient = Nearby.getConnectionsClient(this)
 
+        val textBox = findViewById<TextInputEditText>(R.id.editTextTextMultiLine)
+
+        val updateMsgButton = findViewById<Button>(R.id.updateMsgButton)
         val advertiseButton = findViewById<Button>(R.id.buttonAdvertise)
+
+
+        updateMsgButton.setOnClickListener {
+            val msg = textBox.text.toString()
+            lifecycleScope.launch {
+                dataStore.edit { preferences ->
+                    preferences[userMsgKey] = msg
+                }
+            }
+        }
 
         advertiseButton.setOnClickListener {
             startAdvertising()
@@ -29,6 +52,15 @@ class MainActivity : AppCompatActivity() {
 
         requestPermissions()
         startDiscovery()
+
+        // Continuously observe DataStore
+        lifecycleScope.launch {
+            dataStore.data.collectLatest { preferences ->
+                userMsg = preferences[userMsgKey] ?: "No message saved"
+
+                textBox.setText(userMsg)//so now we set user msg intially
+            }
+        }
     }
 
     private fun requestPermissions() {
@@ -43,10 +75,10 @@ class MainActivity : AppCompatActivity() {
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.BLUETOOTH,
                 Manifest.permission.BLUETOOTH_ADMIN,
-                        Manifest.permission.BLUETOOTH_ADVERTISE,
+                Manifest.permission.BLUETOOTH_ADVERTISE,
                 Manifest.permission.NEARBY_WIFI_DEVICES,
-                Manifest.permission.BLUETOOTH_SCAN
-                ,Manifest.permission.BLUETOOTH_CONNECT
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.BLUETOOTH_CONNECT
             )
         )
     }
@@ -55,7 +87,7 @@ class MainActivity : AppCompatActivity() {
         val advertisingOptions = AdvertisingOptions.Builder().setStrategy(P2P_CLUSTER).build()
         connectionsClient.startAdvertising(
             "Advertiser isss radha ",
-            serviceId,
+            "com.example.nearbydemo.SERVICE_ID",
             connectionLifecycleCallback,
             advertisingOptions
         ).addOnSuccessListener {
@@ -68,7 +100,7 @@ class MainActivity : AppCompatActivity() {
     private fun startDiscovery() {
         val discoveryOptions = DiscoveryOptions.Builder().setStrategy(P2P_CLUSTER).build()
         connectionsClient.startDiscovery(
-            serviceId,
+            "com.example.nearbydemo.SERVICE_ID",
             endpointDiscoveryCallback,
             discoveryOptions
         ).addOnSuccessListener {
@@ -88,7 +120,7 @@ class MainActivity : AppCompatActivity() {
             when (result.status.statusCode) {
                 ConnectionsStatusCodes.STATUS_OK -> {
                     showToast("Connected to $endpointId")
-                    val payload = Payload.fromBytes("Hi".toByteArray())
+                    val payload = Payload.fromBytes(userMsg.toByteArray())
                     connectionsClient.sendPayload(endpointId, payload)
                 }
                 ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED -> {
@@ -108,7 +140,6 @@ class MainActivity : AppCompatActivity() {
     private val endpointDiscoveryCallback = object : EndpointDiscoveryCallback() {
         override fun onEndpointFound(endpointId: String, info: DiscoveredEndpointInfo) {
             showToast("radha Ep found: ${info.endpointName}")
-            // Request connection
             connectionsClient.requestConnection(
                 "Discoverer",
                 endpointId,
@@ -125,17 +156,15 @@ class MainActivity : AppCompatActivity() {
         override fun onPayloadReceived(endpointId: String, payload: Payload) {
             payload.asBytes()?.let { bytes ->
                 val message = String(bytes)
+                otherUserMsg= message
+                val msgTextView = findViewById<TextView>(R.id.savedMsgTextView)
+                msgTextView.setText(message)
                 showToast("Received: $message")
-                if (message == "Hi") {
-                    // Reply with "Hello"
-                    val reply = Payload.fromBytes("Hello".toByteArray())
-                    connectionsClient.sendPayload(endpointId, reply)
-                }
             }
         }
 
         override fun onPayloadTransferUpdate(endpointId: String, update: PayloadTransferUpdate) {
-            showToast("payload transfer update:"+update.status)
+            showToast("payload transfer update:" + update.status)
         }
     }
 

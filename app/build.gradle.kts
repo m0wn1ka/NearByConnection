@@ -47,4 +47,5 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(libs.play.services.nearby)
     implementation(libs.material.v1110)
+    implementation(libs.androidx.datastore.preferences)
 }

@@ -1,61 +1,74 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Top part -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:gravity="center"
         android:padding="16dp">
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/textInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Enter text here"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="?attr/colorOnBackground"
-            app:boxBackgroundColor="?attr/colorSurface">
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/editTextTextMultiLine"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textMultiLine"
-                android:minHeight="100dp"
-                android:textColor="?attr/colorOnBackground"
-                android:gravity="start|top" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editTextTextMultiLine"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start|top"
+            android:inputType="textMultiLine"
+            android:minHeight="100dp" />
+
+        <Button
+            android:id="@+id/updateMsgButton"
+            android:layout_width="wrap_content"
+            android:layout_height="67dp"
+            android:backgroundTint="#6A1B9A"
+            android:text="Update user msg"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+
+    <!-- Middle part -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="16dp">
 
         <Button
             android:id="@+id/buttonAdvertise"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Start Advertising"
-            android:layout_marginTop="16dp"
             android:backgroundTint="#6A1B9A"
             android:textColor="#FFFFFF" />
     </LinearLayout>
 
+    <!-- Bottom part -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="vertical"
         android:gravity="center"
+        android:orientation="vertical"
         android:padding="16dp">
 
-        <Button
-            android:id="@+id/button"
+        <TextView
+            android:id="@+id/savedMsgTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Button"
-            android:backgroundTint="#6A1B9A"
-            android:textColor="#FFFFFF" />
+            android:text="No message saved"
+            android:textSize="18sp"
+            android:textColor="#000000" />
     </LinearLayout>
 </LinearLayout>
