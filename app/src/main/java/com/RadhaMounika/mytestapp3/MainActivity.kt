@@ -33,6 +33,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         requestPermissions()
+        startDiscovery()
     }
 
     private fun requestPermissions() {
@@ -141,7 +142,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onPayloadTransferUpdate(endpointId: String, update: PayloadTransferUpdate) {
-            // No-op for simple text messages
+            showToast("payload transfer update:"+update.status)
         }
     }
 
