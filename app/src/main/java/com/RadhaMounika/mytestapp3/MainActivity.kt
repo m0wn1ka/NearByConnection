@@ -50,6 +50,7 @@ class MainActivity : AppCompatActivity() {
                         Manifest.permission.BLUETOOTH_ADVERTISE,
                 Manifest.permission.NEARBY_WIFI_DEVICES,
                 Manifest.permission.BLUETOOTH_SCAN
+                ,Manifest.permission.BLUETOOTH_CONNECT
             )
         )
     }
@@ -57,7 +58,7 @@ class MainActivity : AppCompatActivity() {
     private fun startAdvertising() {
         val advertisingOptions = AdvertisingOptions.Builder().setStrategy(P2P_CLUSTER).build()
         connectionsClient.startAdvertising(
-            "Advertiser",
+            "Advertiser isss radha ",
             serviceId,
             connectionLifecycleCallback,
             advertisingOptions
@@ -84,6 +85,7 @@ class MainActivity : AppCompatActivity() {
     private val connectionLifecycleCallback = object : ConnectionLifecycleCallback() {
         override fun onConnectionInitiated(endpointId: String, connectionInfo: ConnectionInfo) {
             // Automatically accept the connection
+            showToast("connection life cycle call back called999")
             connectionsClient.acceptConnection(endpointId, payloadCallback)
         }
 
@@ -111,7 +113,7 @@ class MainActivity : AppCompatActivity() {
 
     private val endpointDiscoveryCallback = object : EndpointDiscoveryCallback() {
         override fun onEndpointFound(endpointId: String, info: DiscoveredEndpointInfo) {
-            showToast("Endpoint found: ${info.endpointName}")
+            showToast("radha Ep found: ${info.endpointName}")
             // Request connection
             connectionsClient.requestConnection(
                 "Discoverer",
@@ -144,6 +146,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showToast(text: String) {
-        Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, text, Toast.LENGTH_LONG).show()
     }
 }

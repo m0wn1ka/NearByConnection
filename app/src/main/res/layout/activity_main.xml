@@ -7,13 +7,13 @@
 
     <Button
         android:id="@+id/buttonAdvertise"
-        android:text="Start Advertising"
+        android:text="uuu radha Start Advertising"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
     <Button
         android:id="@+id/buttonDiscover"
-        android:text="Start Discovery"
+        android:text="uuu radha Start Discovery"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 </LinearLayout>
