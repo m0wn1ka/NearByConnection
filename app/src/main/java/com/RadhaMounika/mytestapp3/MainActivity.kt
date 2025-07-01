@@ -1,6 +1,7 @@
 package com.RadhaMounika.mytestapp3
 
 import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -9,6 +10,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -21,11 +23,27 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
-    //the below data store stores the user msg
     val AppCompatActivity.dataStore by preferencesDataStore(name = "UserMsgStore")
     private val userMsgKey = stringPreferencesKey("userMsg")
-    private lateinit var  userMsg : String
+    private lateinit var userMsg: String
     private lateinit var connectionsClient: ConnectionsClient
+    private var permissionsGranted = false
+
+    // Store the permission launcher
+    private val permissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val allGranted = permissions.entries.all { it.value }
+        if (allGranted) {
+            permissionsGranted = true
+            showToast("Permissions granted")
+            // Start discovery only after permissions are granted
+            startDiscovery()
+        } else {
+            permissionsGranted = false
+            showToast("App needs all permissions to work properly")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,8 +56,6 @@ class MainActivity : AppCompatActivity() {
         val advertiseButton = findViewById<Button>(R.id.buttonAdvertise)//the button to share (will call adverise)
 
         updateMsgButton.setOnClickListener {
-            //on click of update msg button
-            // get user msg and save it with pre defined key
             val msg = textBox.text.toString()
             lifecycleScope.launch {
                 dataStore.edit { preferences ->
@@ -67,33 +83,50 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun requestPermissions() {
-        registerForActivityResult(
-            ActivityResultContracts.RequestMultiplePermissions()
-        ) { permissions ->
-            if (permissions.entries.any { !it.value }) {
-                Toast.makeText(this, "Permissions required", Toast.LENGTH_SHORT).show()
+        val requiredPermissions = mutableListOf<String>().apply {
+            add(Manifest.permission.ACCESS_FINE_LOCATION)
+            add(Manifest.permission.ACCESS_COARSE_LOCATION)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                add(Manifest.permission.BLUETOOTH_ADVERTISE)
+                add(Manifest.permission.BLUETOOTH_CONNECT)
+                add(Manifest.permission.BLUETOOTH_SCAN)
+                add(Manifest.permission.NEARBY_WIFI_DEVICES)
+            } else {
+                add(Manifest.permission.BLUETOOTH)
+                add(Manifest.permission.BLUETOOTH_ADMIN)
+                add(Manifest.permission.ACCESS_WIFI_STATE)
+                add(Manifest.permission.CHANGE_WIFI_STATE)
             }
-        }.launch(
-            arrayOf(
-                Manifest.permission.NEARBY_WIFI_DEVICES,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.BLUETOOTH,
-                Manifest.permission.BLUETOOTH_ADMIN,
-                Manifest.permission.BLUETOOTH_ADVERTISE,
-                Manifest.permission.NEARBY_WIFI_DEVICES,
-                Manifest.permission.BLUETOOTH_SCAN,
-                Manifest.permission.BLUETOOTH_CONNECT
-            )
-        )
+        }
+
+        // Check if permissions are already granted
+        val missingPermissions = requiredPermissions.filter { permission ->
+            ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (missingPermissions.isEmpty()) {
+            permissionsGranted = true
+            startDiscovery()
+        } else {
+            permissionLauncher.launch(missingPermissions.toTypedArray())
+        }
     }
 
     private fun startAdvertising() {
-        val advertisingOptions = AdvertisingOptions.Builder().setStrategy(P2P_CLUSTER).build()//many to many
-        val deviceName = Settings.Secure.getString(
-            contentResolver,
-            "bluetooth_name"
-        ) ?: Build.MODEL
+        if (!permissionsGranted) {
+            showToast("Permissions not granted")
+            return
+        }
+
+        val advertisingOptions = AdvertisingOptions.Builder().setStrategy(P2P_CLUSTER).build()
+        val deviceName = try {
+            Settings.Secure.getString(contentResolver, "bluetooth_name") ?: Build.MODEL
+        } catch (e: Exception) {
+            Build.MODEL
+        }
         val advertisingName = "Device: $deviceName"
+
         connectionsClient.startAdvertising(
             advertisingName,
             "com.RadhaMounika.nearby",//unique to each app
@@ -102,11 +135,15 @@ class MainActivity : AppCompatActivity() {
         ).addOnSuccessListener {
             showToast("Advertising started")
         }.addOnFailureListener {
-            showToast("F: ${it.message}")
+            showToast("Advertising failed: ${it.message}")
         }
     }
 
     private fun startDiscovery() {
+        if (!permissionsGranted) {
+            return
+        }
+
         val discoveryOptions = DiscoveryOptions.Builder().setStrategy(P2P_CLUSTER).build()
         connectionsClient.startDiscovery(
             "com.RadhaMounika.nearby",
@@ -115,13 +152,12 @@ class MainActivity : AppCompatActivity() {
         ).addOnSuccessListener {
             showToast("Discovery started")
         }.addOnFailureListener {
-            showToast("F: ${it.message}")
+            showToast("Discovery failed: ${it.message}")
         }
     }
 
     private val connectionLifecycleCallback = object : ConnectionLifecycleCallback() {
         override fun onConnectionInitiated(endpointId: String, connectionInfo: ConnectionInfo) {
-//            accept the connection when inititated by other end
             connectionsClient.acceptConnection(endpointId, payloadCallback)
         }
 
@@ -132,15 +168,20 @@ class MainActivity : AppCompatActivity() {
                     val payload = Payload.fromBytes(userMsg.toByteArray())
                     connectionsClient.sendPayload(endpointId, payload)
                 }
+                else -> {
+                    showToast("Connection failed: ${result.status.statusMessage}")
+                }
             }
         }
 
         override fun onDisconnected(endpointId: String) {
+            showToast("Disconnected from $endpointId")
         }
     }
 
     private val endpointDiscoveryCallback = object : EndpointDiscoveryCallback() {
         override fun onEndpointFound(endpointId: String, info: DiscoveredEndpointInfo) {
+            showToast("Found device: ${info.endpointName}")
             connectionsClient.requestConnection(
                 "Discoverer",
                 endpointId,
@@ -149,19 +190,22 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onEndpointLost(endpointId: String) {
+            showToast("Lost device: $endpointId")
         }
     }
 
     private val payloadCallback = object : PayloadCallback() {
         override fun onPayloadReceived(endpointId: String, payload: Payload) {
             payload.asBytes()?.let { bytes ->
-                val message = "Received Msg:"+String(bytes)
+                val message = "Received Msg: ${String(bytes)}"
                 val msgTextView = findViewById<TextView>(R.id.savedMsgTextView)
-                msgTextView.setText(message)
+                msgTextView.text = message
+                showToast(message)
             }
         }
 
         override fun onPayloadTransferUpdate(endpointId: String, update: PayloadTransferUpdate) {
+            // Handle transfer updates if needed
         }
     }
 
